@@ -358,5 +358,96 @@ export const taskService = {
       }
       throw error;
     }
+},
+
+  async getOverdueTasks() {
+    await delay(200);
+    try {
+      const { ApperClient } = window.ApperSDK;
+      const apperClient = new ApperClient({
+        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+      });
+      
+      const currentDate = new Date().toISOString();
+      
+      const params = {
+        fields: [
+          { field: { Name: "Name" } },
+          { field: { Name: "title_c" } },
+          { field: { Name: "description_c" } },
+          { field: { Name: "due_date_c" } },
+          { field: { Name: "priority_c" } },
+          { field: { Name: "completed_c" } },
+          { field: { Name: "completed_at_c" } },
+          { field: { Name: "category_c" } },
+          { field: { Name: "farm_id_c" } },
+          { field: { Name: "crop_id_c" } }
+        ],
+        whereGroups: [{
+          operator: "AND",
+          subGroups: [
+            {
+              operator: "AND", 
+              conditions: [
+                {
+                  fieldName: "completed_c",
+                  operator: "NotEqualTo",
+                  values: ["true"]
+                }
+              ]
+            },
+            {
+              operator: "AND",
+              conditions: [
+                {
+                  fieldName: "due_date_c",
+                  operator: "LessThan", 
+                  values: [currentDate]
+                }
+              ]
+            }
+          ]
+        }],
+        orderBy: [
+          {
+            fieldName: "due_date_c",
+            sorttype: "ASC"
+          }
+        ]
+      };
+      
+      const response = await apperClient.fetchRecords('task_c', params);
+      
+      if (!response.success) {
+        console.error(response.message);
+        throw new Error(response.message);
+      }
+      
+      if (!response.data || response.data.length === 0) {
+        return [];
+      }
+      
+      return response.data.map(task => ({
+        Id: task.Id,
+        title: task.title_c,
+        description: task.description_c,
+        dueDate: task.due_date_c,
+        priority: task.priority_c,
+        completed: task.completed_c === "true",
+        completedAt: task.completed_at_c,
+        category: task.category_c,
+        farmId: task.farm_id_c,
+        cropId: task.crop_id_c
+      }));
+      
+    } catch (error) {
+      if (error?.response?.data?.message) {
+        console.error("Error fetching overdue tasks:", error?.response?.data?.message);
+      } else {
+        console.error(error.message);
+      }
+      throw error;
+    }
   }
 };
