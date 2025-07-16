@@ -9,6 +9,7 @@ const FormField = ({
   label, 
   type = "text",
   error,
+  helperText,
   required = false,
   className,
   children,
@@ -38,8 +39,11 @@ const FormField = ({
         </Label>
       )}
       {renderInput()}
-      {error && (
+{error && (
         <p className="text-sm text-red-600">{error}</p>
+      )}
+      {helperText && !error && (
+        <p className="text-sm text-gray-500">{helperText}</p>
       )}
     </div>
   );
