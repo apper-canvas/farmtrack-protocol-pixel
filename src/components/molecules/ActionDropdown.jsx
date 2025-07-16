@@ -8,7 +8,8 @@ const ActionDropdown = ({
   actions, 
   className,
   buttonText = "Actions",
-  buttonIcon = "MoreVertical"
+  buttonIcon = "MoreVertical",
+  hideText = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -26,13 +27,13 @@ const ActionDropdown = ({
   
   return (
     <div className={cn("relative", className)} ref={dropdownRef}>
-      <Button
+<Button
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2"
+        className={`flex items-center ${!hideText ? 'space-x-2' : ''}`}
       >
-        <span>{buttonText}</span>
+        {!hideText && <span>{buttonText}</span>}
         <ApperIcon name={buttonIcon} className="h-4 w-4" />
       </Button>
       
