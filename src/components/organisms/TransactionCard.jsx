@@ -44,7 +44,7 @@ return (
 <ActionDropdown actions={actions} buttonIcon="MoreHorizontal" />
       </div>
       
-      <div className="space-y-4 pr-20">
+<div className="space-y-4 pr-24">
         <div className="flex items-start space-x-3">
           <div className={cn(
             "p-2 rounded-lg",
@@ -56,12 +56,12 @@ return (
             />
           </div>
           
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">
                 {transaction.category.charAt(0).toUpperCase() + transaction.category.slice(1)}
               </h3>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 flex-shrink-0">
                 <ApperIcon 
                   name={getTypeIcon(transaction.type)} 
                   className={cn("h-5 w-5", getTypeColor(transaction.type))} 
