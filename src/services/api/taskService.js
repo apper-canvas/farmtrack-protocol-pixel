@@ -79,7 +79,13 @@ export const taskService = {
       throw new Error("Task not found");
     }
     tasks[index].completed = !tasks[index].completed;
-    tasks[index].completedAt = tasks[index].completed ? new Date().toISOString() : null;
+tasks[index].completedAt = tasks[index].completed ? new Date().toISOString() : null;
     return { ...tasks[index] };
+  },
+
+  async getOverdueTasks() {
+    await delay(200);
+    const now = new Date();
+    return tasks.filter(t => !t.completed && new Date(t.dueDate) < now);
   }
 };

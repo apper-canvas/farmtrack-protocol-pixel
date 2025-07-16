@@ -1,21 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
 import { cn } from "@/utils/cn";
-
+import { taskService } from "@/services/api/taskService";
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const [overdueCount, setOverdueCount] = useState(0);
   
   const navigationItems = [
     { path: "/", label: "Dashboard", icon: "BarChart3" },
     { path: "/farms", label: "Farms", icon: "MapPin" },
     { path: "/crops", label: "Crops", icon: "Sprout" },
-    { path: "/tasks", label: "Tasks", icon: "CheckSquare" },
+    { path: "/tasks", label: "Tasks", icon: "CheckSquare", badge: overdueCount > 0 ? overdueCount : null },
     { path: "/finance", label: "Finance", icon: "DollarSign" },
     { path: "/weather", label: "Weather", icon: "CloudSun" }
   ];
-  
+
+  // Load overdue task count
+  useEffect(() => {
+    const loadOverdueCount = async () => {
+      try {
+        const overdueTasks = await taskService.getOverdueTasks();
+        setOverdueCount(overdueTasks.length);
+      } catch (err) {
+        console.error("Failed to load overdue tasks:", err);
+      }
+    };
+
+    loadOverdueCount();
+    
+    // Refresh every minute to keep count current
+    const interval = setInterval(loadOverdueCount, 60000);
+    return () => clearInterval(interval);
+  }, []);
   // Desktop sidebar - static
   const DesktopSidebar = () => (
     <div className="hidden lg:block w-64 bg-white border-r border-gray-200 h-full">
@@ -44,9 +63,20 @@ const Sidebar = ({ isOpen, onClose }) => {
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               )
             }
-          >
-            <ApperIcon name={item.icon} className="h-5 w-5" />
-            <span className="font-medium">{item.label}</span>
+>
+            <div className="flex items-center space-x-3">
+              <ApperIcon name={item.icon} className="h-5 w-5" />
+              <span className="font-medium">{item.label}</span>
+              {item.badge && (
+                <Badge 
+                  variant="danger" 
+                  size="sm"
+                  className="bg-red-500 text-white font-semibold"
+                >
+                  {item.badge}
+                </Badge>
+              )}
+            </div>
           </NavLink>
         ))}
       </nav>
@@ -107,9 +137,20 @@ const Sidebar = ({ isOpen, onClose }) => {
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                     )
                   }
-                >
-                  <ApperIcon name={item.icon} className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
+>
+                  <div className="flex items-center space-x-3">
+                    <ApperIcon name={item.icon} className="h-5 w-5" />
+                    <span className="font-medium">{item.label}</span>
+                    {item.badge && (
+                      <Badge 
+                        variant="danger" 
+                        size="sm"
+                        className="bg-red-500 text-white font-semibold"
+                      >
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </div>
                 </NavLink>
               ))}
             </nav>

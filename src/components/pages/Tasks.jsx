@@ -15,8 +15,8 @@ import Empty from "@/components/ui/Empty";
 import { taskService } from "@/services/api/taskService";
 import { farmService } from "@/services/api/farmService";
 import { cropService } from "@/services/api/cropService";
+import { reminderService } from "@/services/api/reminderService";
 import { useDebounce } from "@/hooks/useDebounce";
-
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
   const [farms, setFarms] = useState([]);
@@ -27,15 +27,16 @@ const Tasks = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     title: "",
     description: "",
     farmId: "",
     cropId: "",
     dueDate: "",
-    priority: "medium"
+    priority: "medium",
+    enableReminder: true,
+    reminderDays: 1
   });
-
   const debouncedSearch = useDebounce(searchTerm, 300);
 
   const loadData = async () => {
@@ -62,13 +63,23 @@ const Tasks = () => {
     loadData();
   }, []);
 
-  const handleAddTask = async (e) => {
+const handleAddTask = async (e) => {
     e.preventDefault();
     try {
       const newTask = await taskService.create({
         ...formData,
         cropId: formData.cropId || null
       });
+      
+      // Schedule reminder if enabled
+      if (formData.enableReminder) {
+        await reminderService.scheduleReminder(newTask.Id, {
+          type: 'task_due',
+          daysInAdvance: parseInt(formData.reminderDays),
+          notificationMethods: ['in-app']
+        });
+      }
+      
       setTasks([...tasks, newTask]);
       setFormData({
         title: "",
@@ -76,7 +87,9 @@ const Tasks = () => {
         farmId: "",
         cropId: "",
         dueDate: "",
-        priority: "medium"
+        priority: "medium",
+        enableReminder: true,
+        reminderDays: 1
       });
       setShowAddForm(false);
       toast.success("Task added successfully!");
@@ -85,7 +98,7 @@ const Tasks = () => {
     }
   };
 
-  const handleEditTask = (task) => {
+const handleEditTask = (task) => {
     setEditingTask(task);
     setFormData({
       title: task.title,
@@ -93,18 +106,30 @@ const Tasks = () => {
       farmId: task.farmId.toString(),
       cropId: task.cropId ? task.cropId.toString() : "",
       dueDate: format(new Date(task.dueDate), "yyyy-MM-dd"),
-      priority: task.priority
+      priority: task.priority,
+      enableReminder: true,
+      reminderDays: 1
     });
     setShowAddForm(true);
   };
 
-  const handleUpdateTask = async (e) => {
+const handleUpdateTask = async (e) => {
     e.preventDefault();
     try {
       const updatedTask = await taskService.update(editingTask.Id, {
         ...formData,
         cropId: formData.cropId || null
       });
+      
+      // Update reminder if enabled
+      if (formData.enableReminder) {
+        await reminderService.updateReminder(editingTask.Id, {
+          type: 'task_due',
+          daysInAdvance: parseInt(formData.reminderDays),
+          notificationMethods: ['in-app']
+        });
+      }
+      
       setTasks(tasks.map(t => t.Id === editingTask.Id ? updatedTask : t));
       setFormData({
         title: "",
@@ -112,7 +137,9 @@ const Tasks = () => {
         farmId: "",
         cropId: "",
         dueDate: "",
-        priority: "medium"
+        priority: "medium",
+        enableReminder: true,
+        reminderDays: 1
       });
       setShowAddForm(false);
       setEditingTask(null);
@@ -144,14 +171,16 @@ const Tasks = () => {
     }
   };
 
-  const handleCancel = () => {
+const handleCancel = () => {
     setFormData({
       title: "",
       description: "",
       farmId: "",
       cropId: "",
       dueDate: "",
-      priority: "medium"
+      priority: "medium",
+      enableReminder: true,
+      reminderDays: 1
     });
     setShowAddForm(false);
     setEditingTask(null);
@@ -310,7 +339,30 @@ const Tasks = () => {
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
                     <option value="high">High</option>
-                  </FormField>
+</FormField>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    label="Enable Reminder"
+                    type="checkbox"
+                    checked={formData.enableReminder}
+                    onChange={(e) => setFormData({...formData, enableReminder: e.target.checked})}
+                    helperText="Receive notifications before task is due"
+                  />
+                  {formData.enableReminder && (
+                    <FormField
+                      label="Reminder Days in Advance"
+                      type="select"
+                      value={formData.reminderDays}
+                      onChange={(e) => setFormData({...formData, reminderDays: e.target.value})}
+                    >
+                      <option value="1">1 day before</option>
+                      <option value="2">2 days before</option>
+                      <option value="3">3 days before</option>
+                      <option value="7">1 week before</option>
+                    </FormField>
+                  )}
                 </div>
                 
                 <div className="flex items-center space-x-4 pt-4">
