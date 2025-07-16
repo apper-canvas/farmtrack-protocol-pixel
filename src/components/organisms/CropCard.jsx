@@ -107,13 +107,13 @@ return (
             </span>
           </div>
           
-          {crop.status === "ready" && (
+{crop.status === "ready" && (
             <Button
               variant="success"
               size="sm"
               onClick={() => onHarvest(crop.Id)}
             >
-              Harvest
+              <ApperIcon name="MoreHorizontal" className="h-4 w-4" />
             </Button>
           )}
         </div>

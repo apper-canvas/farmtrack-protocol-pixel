@@ -46,14 +46,14 @@ return (
           </div>
         </div>
         
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+<div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <Badge variant="success">Active</Badge>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onViewDetails(farm)}
           >
-            View Details
+            <ApperIcon name="MoreHorizontal" className="h-4 w-4" />
           </Button>
         </div>
       </div>
