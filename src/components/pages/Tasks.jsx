@@ -12,6 +12,7 @@ import TaskCard from "@/components/organisms/TaskCard";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import Empty from "@/components/ui/Empty";
+import Modal from "@/components/atoms/Modal";
 import { taskService } from "@/services/api/taskService";
 import { farmService } from "@/services/api/farmService";
 import { cropService } from "@/services/api/cropService";
@@ -253,135 +254,116 @@ const handleCancel = () => {
         />
       </div>
 
-      {/* Add/Edit Task Form */}
-      <AnimatePresence>
-        {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {editingTask ? "Edit Task" : "Add New Task"}
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancel}
-                >
-                  <ApperIcon name="X" className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <form onSubmit={editingTask ? handleUpdateTask : handleAddTask} className="space-y-4">
-                <FormField
-                  label="Task Title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  required
-                  placeholder="Enter task title"
-                />
-                
-                <FormField
-                  label="Description"
-                  type="textarea"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Enter task description..."
-                  rows={3}
-                />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Farm"
-                    type="select"
-                    value={formData.farmId}
-                    onChange={(e) => setFormData({...formData, farmId: e.target.value})}
-                    required
-                  >
-                    <option value="">Select a farm</option>
-                    {farms.map(farm => (
-                      <option key={farm.Id} value={farm.Id}>{farm.name}</option>
-                    ))}
-                  </FormField>
-                  <FormField
-                    label="Crop (Optional)"
-                    type="select"
-                    value={formData.cropId}
-                    onChange={(e) => setFormData({...formData, cropId: e.target.value})}
-                  >
-                    <option value="">Select a crop (optional)</option>
-                    {crops
-                      .filter(crop => !formData.farmId || crop.farmId === parseInt(formData.farmId))
-                      .map(crop => (
-                        <option key={crop.Id} value={crop.Id}>{crop.name}</option>
-                      ))}
-                  </FormField>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Due Date"
-                    type="date"
-                    value={formData.dueDate}
-                    onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
-                    required
-                  />
-                  <FormField
-                    label="Priority"
-                    type="select"
-                    value={formData.priority}
-                    onChange={(e) => setFormData({...formData, priority: e.target.value})}
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-</FormField>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Enable Reminder"
-                    type="checkbox"
-                    checked={formData.enableReminder}
-                    onChange={(e) => setFormData({...formData, enableReminder: e.target.checked})}
-                    helperText="Receive notifications before task is due"
-                  />
-                  {formData.enableReminder && (
-                    <FormField
-                      label="Reminder Days in Advance"
-                      type="select"
-                      value={formData.reminderDays}
-                      onChange={(e) => setFormData({...formData, reminderDays: e.target.value})}
-                    >
-                      <option value="1">1 day before</option>
-                      <option value="2">2 days before</option>
-                      <option value="3">3 days before</option>
-                      <option value="7">1 week before</option>
-                    </FormField>
-                  )}
-                </div>
-                
-                <div className="flex items-center space-x-4 pt-4">
-                  <Button type="submit">
-                    {editingTask ? "Update Task" : "Add Task"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+{/* Add/Edit Task Modal */}
+      <Modal
+        isOpen={showAddForm}
+        onClose={handleCancel}
+        title={editingTask ? "Edit Task" : "Add New Task"}
+        size="lg"
+      >
+        <form onSubmit={editingTask ? handleUpdateTask : handleAddTask} className="space-y-4">
+          <FormField
+            label="Task Title"
+            value={formData.title}
+            onChange={(e) => setFormData({...formData, title: e.target.value})}
+            required
+            placeholder="Enter task title"
+          />
+          
+          <FormField
+            label="Description"
+            type="textarea"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            placeholder="Enter task description..."
+            rows={3}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Farm"
+              type="select"
+              value={formData.farmId}
+              onChange={(e) => setFormData({...formData, farmId: e.target.value})}
+              required
+            >
+              <option value="">Select a farm</option>
+              {farms.map(farm => (
+                <option key={farm.Id} value={farm.Id}>{farm.name}</option>
+              ))}
+            </FormField>
+            <FormField
+              label="Crop (Optional)"
+              type="select"
+              value={formData.cropId}
+              onChange={(e) => setFormData({...formData, cropId: e.target.value})}
+            >
+              <option value="">Select a crop (optional)</option>
+              {crops
+                .filter(crop => !formData.farmId || crop.farmId === parseInt(formData.farmId))
+                .map(crop => (
+                  <option key={crop.Id} value={crop.Id}>{crop.name}</option>
+                ))}
+            </FormField>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Due Date"
+              type="date"
+              value={formData.dueDate}
+              onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+              required
+            />
+            <FormField
+              label="Priority"
+              type="select"
+              value={formData.priority}
+              onChange={(e) => setFormData({...formData, priority: e.target.value})}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </FormField>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Enable Reminder"
+              type="checkbox"
+              checked={formData.enableReminder}
+              onChange={(e) => setFormData({...formData, enableReminder: e.target.checked})}
+              helperText="Receive notifications before task is due"
+            />
+            {formData.enableReminder && (
+              <FormField
+                label="Reminder Days in Advance"
+                type="select"
+                value={formData.reminderDays}
+                onChange={(e) => setFormData({...formData, reminderDays: e.target.value})}
+              >
+                <option value="1">1 day before</option>
+                <option value="2">2 days before</option>
+                <option value="3">3 days before</option>
+                <option value="7">1 week before</option>
+              </FormField>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-4 pt-4">
+            <Button type="submit">
+              {editingTask ? "Update Task" : "Add Task"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Tasks Grid */}
       {filteredTasks.length === 0 ? (
