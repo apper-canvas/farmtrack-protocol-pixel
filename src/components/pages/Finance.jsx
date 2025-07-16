@@ -191,11 +191,10 @@ const Finance = () => {
     .filter(t => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const netProfit = totalIncome - totalExpenses;
+const netProfit = totalIncome - totalExpenses;
 
-  const expenseCategories = ["seeds", "fertilizer", "equipment", "fuel", "labor", "other"];
-  const incomeCategories = ["sale", "subsidy", "other"];
-
+  const expenseCategories = ["seeds", "fertilizer", "equipment", "labor", "fuel", "maintenance", "other"];
+  const incomeCategories = ["sales", "subsidy", "other"];
   if (loading) {
     return (
       <div className="space-y-6">
