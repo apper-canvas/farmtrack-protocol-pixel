@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
+import Modal from "@/components/atoms/Modal";
 import SearchBar from "@/components/molecules/SearchBar";
 import FilterTabs from "@/components/molecules/FilterTabs";
 import FormField from "@/components/molecules/FormField";
@@ -265,130 +266,111 @@ const Finance = () => {
         />
       </div>
 
-      {/* Add/Edit Transaction Form */}
-      <AnimatePresence>
-        {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {editingTransaction ? "Edit Transaction" : "Add New Transaction"}
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancel}
-                >
-                  <ApperIcon name="X" className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <form onSubmit={editingTransaction ? handleUpdateTransaction : handleAddTransaction} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Transaction Type"
-                    type="select"
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                    required
-                  >
-                    <option value="income">Income</option>
-                    <option value="expense">Expense</option>
-                  </FormField>
-                  <FormField
-                    label="Amount"
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                    required
-                    placeholder="Enter amount"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Category"
-                    type="select"
-                    value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    required
-                  >
-                    <option value="">Select category</option>
-                    {(formData.type === "expense" ? expenseCategories : incomeCategories).map(cat => (
-                      <option key={cat} value={cat}>
-                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                      </option>
-                    ))}
-                  </FormField>
-                  <FormField
-                    label="Date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                    required
-                  />
-                </div>
-                
-                <FormField
-                  label="Description"
-                  type="textarea"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Enter description..."
-                  rows={3}
-                />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Farm (Optional)"
-                    type="select"
-                    value={formData.farmId}
-                    onChange={(e) => setFormData({...formData, farmId: e.target.value})}
-                  >
-                    <option value="">Select farm (optional)</option>
-                    {farms.map(farm => (
-                      <option key={farm.Id} value={farm.Id}>{farm.name}</option>
-                    ))}
-                  </FormField>
-                  <FormField
-                    label="Crop (Optional)"
-                    type="select"
-                    value={formData.cropId}
-                    onChange={(e) => setFormData({...formData, cropId: e.target.value})}
-                  >
-                    <option value="">Select crop (optional)</option>
-                    {crops
-                      .filter(crop => !formData.farmId || crop.farmId === parseInt(formData.farmId))
-                      .map(crop => (
-                        <option key={crop.Id} value={crop.Id}>{crop.name}</option>
-                      ))}
-                  </FormField>
-                </div>
-                
-                <div className="flex items-center space-x-4 pt-4">
-                  <Button type="submit">
-                    {editingTransaction ? "Update Transaction" : "Add Transaction"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+{/* Add/Edit Transaction Modal */}
+      <Modal
+        isOpen={showAddForm}
+        onClose={handleCancel}
+        title={editingTransaction ? "Edit Transaction" : "Add New Transaction"}
+        size="lg"
+      >
+        <form onSubmit={editingTransaction ? handleUpdateTransaction : handleAddTransaction} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Transaction Type"
+              type="select"
+              value={formData.type}
+              onChange={(e) => setFormData({...formData, type: e.target.value})}
+              required
+            >
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </FormField>
+            <FormField
+              label="Amount"
+              type="number"
+              value={formData.amount}
+              onChange={(e) => setFormData({...formData, amount: e.target.value})}
+              required
+              placeholder="Enter amount"
+              min="0"
+              step="0.01"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Category"
+              type="select"
+              value={formData.category}
+              onChange={(e) => setFormData({...formData, category: e.target.value})}
+              required
+            >
+              <option value="">Select category</option>
+              {(formData.type === "expense" ? expenseCategories : incomeCategories).map(cat => (
+                <option key={cat} value={cat}>
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </option>
+              ))}
+            </FormField>
+            <FormField
+              label="Date"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({...formData, date: e.target.value})}
+              required
+            />
+          </div>
+          
+          <FormField
+            label="Description"
+            type="textarea"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            placeholder="Enter description..."
+            rows={3}
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Farm (Optional)"
+              type="select"
+              value={formData.farmId}
+              onChange={(e) => setFormData({...formData, farmId: e.target.value})}
+            >
+              <option value="">Select farm (optional)</option>
+              {farms.map(farm => (
+                <option key={farm.Id} value={farm.Id}>{farm.name}</option>
+              ))}
+            </FormField>
+            <FormField
+              label="Crop (Optional)"
+              type="select"
+              value={formData.cropId}
+              onChange={(e) => setFormData({...formData, cropId: e.target.value})}
+            >
+              <option value="">Select crop (optional)</option>
+              {crops
+                .filter(crop => !formData.farmId || crop.farmId === parseInt(formData.farmId))
+                .map(crop => (
+                  <option key={crop.Id} value={crop.Id}>{crop.name}</option>
+                ))}
+            </FormField>
+          </div>
+          
+          <div className="flex items-center space-x-4 pt-4">
+            <Button type="submit">
+              {editingTransaction ? "Update Transaction" : "Add Transaction"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Transactions Grid */}
       {filteredTransactions.length === 0 ? (
