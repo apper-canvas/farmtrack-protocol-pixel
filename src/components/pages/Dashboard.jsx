@@ -29,9 +29,10 @@ const Dashboard = () => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+const [showQuickAddModal, setShowQuickAddModal] = useState(false);
   const [quickAddType, setQuickAddType] = useState("farm");
   const [quickAddLoading, setQuickAddLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const loadDashboardData = async () => {
     try {
@@ -112,6 +113,84 @@ const Dashboard = () => {
       toast.error(`Failed to create ${quickAddType}`);
     } finally {
       setQuickAddLoading(false);
+    }
+};
+
+  const handleExportReport = async () => {
+    try {
+      setExportLoading(true);
+      
+      // Calculate statistics for the report
+      const totalIncome = transactions
+        .filter(t => t.type === "income")
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const totalExpenses = transactions
+        .filter(t => t.type === "expense")
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const activeCrops = crops.filter(c => c.status !== "harvested").length;
+      const pendingTasks = tasks.filter(t => !t.completed).length;
+      const completedTasks = tasks.filter(t => t.completed).length;
+      
+      // Generate CSV content
+      const csvContent = [
+        // Header
+        'Farm Dashboard Report',
+        `Generated: ${new Date().toLocaleString()}`,
+        '',
+        // Summary Statistics
+        'SUMMARY STATISTICS',
+        `Total Farms,${farms.length}`,
+        `Active Crops,${activeCrops}`,
+        `Pending Tasks,${pendingTasks}`,
+        `Completed Tasks,${completedTasks}`,
+        `Total Income,$${totalIncome.toLocaleString()}`,
+        `Total Expenses,$${totalExpenses.toLocaleString()}`,
+        `Net Profit,$${(totalIncome - totalExpenses).toLocaleString()}`,
+        '',
+        // Farms Details
+        'FARMS',
+        'Name,Location,Size (acres),Type,Status',
+        ...farms.map(farm => `${farm.name},${farm.location},${farm.size},${farm.type},Active`),
+        '',
+        // Crops Details
+        'CROPS',
+        'Name,Variety,Status,Planting Date,Expected Harvest',
+        ...crops.map(crop => `${crop.name},${crop.variety},${crop.status},${crop.plantingDate},${crop.expectedHarvestDate}`),
+        '',
+        // Recent Tasks
+        'TASKS',
+        'Title,Priority,Status,Due Date,Farm',
+        ...tasks.map(task => {
+          const farm = farms.find(f => f.Id === task.farmId);
+          return `${task.title},${task.priority},${task.completed ? 'Completed' : 'Pending'},${task.dueDate},${farm?.name || 'Unknown'}`;
+        }),
+        '',
+        // Recent Transactions
+        'TRANSACTIONS',
+        'Type,Amount,Description,Date,Category',
+        ...transactions.map(transaction => `${transaction.type},$${transaction.amount},${transaction.description},${transaction.date},${transaction.category}`)
+      ].join('\n');
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `farm-dashboard-report-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Report exported successfully!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export report. Please try again.');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -574,12 +653,17 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold text-gray-900">Farm Dashboard</h1>
           <p className="text-gray-600 mt-1">Welcome back! Here's what's happening on your farms.</p>
         </div>
-        <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-          <Button variant="outline" size="sm">
+<div className="flex items-center space-x-2 mt-4 sm:mt-0">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExportReport}
+            disabled={exportLoading}
+          >
             <ApperIcon name="Download" className="h-4 w-4 mr-2" />
-            Export Report
+            {exportLoading ? 'Exporting...' : 'Export Report'}
           </Button>
-<Button size="sm" onClick={handleQuickAdd}>
+          <Button size="sm" onClick={handleQuickAdd}>
             <ApperIcon name="Plus" className="h-4 w-4 mr-2" />
             Quick Add
           </Button>
