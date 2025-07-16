@@ -353,14 +353,13 @@ export const taskService = {
     } catch (error) {
       if (error?.response?.data?.message) {
         console.error("Error toggling task completion:", error?.response?.data?.message);
-      } else {
+} else {
         console.error(error.message);
       }
       throw error;
     }
-},
-
-  async getOverdueTasks() {
+  },
+async getOverdueTasks() {
     await delay(200);
     try {
       const { ApperClient } = window.ApperSDK;
