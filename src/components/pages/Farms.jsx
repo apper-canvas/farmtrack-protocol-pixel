@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
+import Modal from "@/components/atoms/Modal";
 import SearchBar from "@/components/molecules/SearchBar";
 import FilterTabs from "@/components/molecules/FilterTabs";
 import FormField from "@/components/molecules/FormField";
@@ -156,7 +157,7 @@ const Farms = () => {
           <h1 className="text-2xl font-bold text-gray-900">Farms</h1>
           <p className="text-gray-600 mt-1">Manage your farm properties and locations</p>
         </div>
-        <Button
+<Button
           onClick={() => setShowAddForm(true)}
           className="flex items-center space-x-2 mt-4 sm:mt-0"
         >
@@ -180,88 +181,69 @@ const Farms = () => {
         />
       </div>
 
-      {/* Add/Edit Farm Form */}
-      <AnimatePresence>
-        {showAddForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <Card>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {editingFarm ? "Edit Farm" : "Add New Farm"}
-                </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancel}
-                >
-                  <ApperIcon name="X" className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <form onSubmit={editingFarm ? handleUpdateFarm : handleAddFarm} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Farm Name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    required
-                    placeholder="Enter farm name"
-                  />
-                  <FormField
-                    label="Location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                    required
-                    placeholder="Enter location"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    label="Size"
-                    type="number"
-                    value={formData.size}
-                    onChange={(e) => setFormData({...formData, size: e.target.value})}
-                    required
-                    placeholder="Enter size"
-                    min="0"
-                    step="0.1"
-                  />
-                  <FormField
-                    label="Size Unit"
-                    type="select"
-                    value={formData.sizeUnit}
-                    onChange={(e) => setFormData({...formData, sizeUnit: e.target.value})}
-                  >
-                    <option value="acres">Acres</option>
-                    <option value="hectares">Hectares</option>
-                    <option value="sq ft">Square Feet</option>
-                    <option value="sq m">Square Meters</option>
-                  </FormField>
-                </div>
-                
-                <div className="flex items-center space-x-4 pt-4">
-                  <Button type="submit">
-                    {editingFarm ? "Update Farm" : "Add Farm"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancel}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+{/* Add/Edit Farm Modal */}
+      <Modal
+        isOpen={showAddForm}
+        onClose={handleCancel}
+        title={editingFarm ? "Edit Farm" : "Add New Farm"}
+        size="md"
+      >
+        <form onSubmit={editingFarm ? handleUpdateFarm : handleAddFarm} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Farm Name"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              required
+              placeholder="Enter farm name"
+            />
+            <FormField
+              label="Location"
+              value={formData.location}
+              onChange={(e) => setFormData({...formData, location: e.target.value})}
+              required
+              placeholder="Enter location"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label="Size"
+              type="number"
+              value={formData.size}
+              onChange={(e) => setFormData({...formData, size: e.target.value})}
+              required
+              placeholder="Enter size"
+              min="0"
+              step="0.1"
+            />
+            <FormField
+              label="Size Unit"
+              type="select"
+              value={formData.sizeUnit}
+              onChange={(e) => setFormData({...formData, sizeUnit: e.target.value})}
+            >
+              <option value="acres">Acres</option>
+              <option value="hectares">Hectares</option>
+              <option value="sq ft">Square Feet</option>
+              <option value="sq m">Square Meters</option>
+            </FormField>
+          </div>
+          
+          <div className="flex items-center space-x-4 pt-4">
+            <Button type="submit">
+              {editingFarm ? "Update Farm" : "Add Farm"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Farms Grid */}
       {filteredFarms.length === 0 ? (
