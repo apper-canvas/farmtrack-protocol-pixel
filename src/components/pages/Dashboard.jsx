@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format, isToday, isTomorrow } from "date-fns";
 import { toast } from "react-toastify";
-import StatCard from "@/components/molecules/StatCard";
-import WeatherWidget from "@/components/organisms/WeatherWidget";
+import ApperIcon from "@/components/ApperIcon";
 import TaskCard from "@/components/organisms/TaskCard";
+import WeatherWidget from "@/components/organisms/WeatherWidget";
 import TransactionCard from "@/components/organisms/TransactionCard";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
+import Badge from "@/components/atoms/Badge";
+import Select from "@/components/atoms/Select";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
-import Badge from "@/components/atoms/Badge";
-import ApperIcon from "@/components/ApperIcon";
-import { farmService } from "@/services/api/farmService";
+import Empty from "@/components/ui/Empty";
+import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
+import Farms from "@/components/pages/Farms";
+import StatCard from "@/components/molecules/StatCard";
 import { cropService } from "@/services/api/cropService";
+import { farmService } from "@/services/api/farmService";
 import { taskService } from "@/services/api/taskService";
-import { transactionService } from "@/services/api/transactionService";
 import { weatherService } from "@/services/api/weatherService";
+import { transactionService } from "@/services/api/transactionService";
 
 const Dashboard = () => {
   const [farms, setFarms] = useState([]);
@@ -27,6 +29,9 @@ const Dashboard = () => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+  const [quickAddType, setQuickAddType] = useState("farm");
+  const [quickAddLoading, setQuickAddLoading] = useState(false);
 
   const loadDashboardData = async () => {
     try {
@@ -66,8 +71,471 @@ const Dashboard = () => {
     } catch (err) {
       toast.error("Failed to update task");
     }
+};
+
+  const handleQuickAdd = () => {
+    setShowQuickAddModal(true);
   };
 
+  const handleQuickAddSubmit = async (formData) => {
+    try {
+      setQuickAddLoading(true);
+      let newItem;
+      
+      switch (quickAddType) {
+        case "farm":
+          newItem = await farmService.create(formData);
+          setFarms(prev => [...prev, newItem]);
+          toast.success("Farm created successfully!");
+          break;
+        case "crop":
+          newItem = await cropService.create(formData);
+          setCrops(prev => [...prev, newItem]);
+          toast.success("Crop created successfully!");
+          break;
+        case "task":
+          newItem = await taskService.create(formData);
+          setTasks(prev => [...prev, newItem]);
+          toast.success("Task created successfully!");
+          break;
+        case "transaction":
+          newItem = await transactionService.create(formData);
+          setTransactions(prev => [...prev, newItem]);
+          toast.success("Transaction created successfully!");
+          break;
+      }
+      
+      setShowQuickAddModal(false);
+      // Refresh dashboard data to ensure consistency
+      await loadDashboardData();
+    } catch (err) {
+      toast.error(`Failed to create ${quickAddType}`);
+    } finally {
+      setQuickAddLoading(false);
+    }
+  };
+
+  const renderQuickAddForm = () => {
+    switch (quickAddType) {
+      case "farm":
+        return (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = {
+              name: e.target.name.value,
+              location: e.target.location.value,
+              size: parseFloat(e.target.size.value),
+              type: e.target.type.value,
+              description: e.target.description.value
+            };
+            handleQuickAddSubmit(formData);
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Farm Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter farm name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <input
+                  type="text"
+                  name="location"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter location"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Size (acres)</label>
+                <input
+                  type="number"
+                  name="size"
+                  required
+                  step="0.1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter size"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  name="type"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="vegetable">Vegetable</option>
+                  <option value="grain">Grain</option>
+                  <option value="fruit">Fruit</option>
+                  <option value="livestock">Livestock</option>
+                  <option value="mixed">Mixed</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  name="description"
+                  rows="3"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter description"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowQuickAddModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={quickAddLoading}>
+                {quickAddLoading ? "Creating..." : "Create Farm"}
+              </Button>
+            </div>
+          </form>
+        );
+      
+      case "crop":
+        return (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = {
+              name: e.target.name.value,
+              variety: e.target.variety.value,
+              farmId: parseInt(e.target.farmId.value),
+              plantingDate: e.target.plantingDate.value,
+              expectedHarvestDate: e.target.expectedHarvestDate.value,
+              area: parseFloat(e.target.area.value),
+              notes: e.target.notes.value
+            };
+            handleQuickAddSubmit(formData);
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Crop Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter crop name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Variety</label>
+                <input
+                  type="text"
+                  name="variety"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter variety"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Farm</label>
+                <select
+                  name="farmId"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="">Select a farm</option>
+                  {farms.map(farm => (
+                    <option key={farm.Id} value={farm.Id}>{farm.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Planting Date</label>
+                <input
+                  type="date"
+                  name="plantingDate"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Expected Harvest Date</label>
+                <input
+                  type="date"
+                  name="expectedHarvestDate"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Area (acres)</label>
+                <input
+                  type="number"
+                  name="area"
+                  required
+                  step="0.1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter area"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  name="notes"
+                  rows="3"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter notes"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowQuickAddModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={quickAddLoading}>
+                {quickAddLoading ? "Creating..." : "Create Crop"}
+              </Button>
+            </div>
+          </form>
+        );
+      
+      case "task":
+        return (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = {
+              title: e.target.title.value,
+              description: e.target.description.value,
+              farmId: parseInt(e.target.farmId.value),
+              cropId: e.target.cropId.value ? parseInt(e.target.cropId.value) : null,
+              priority: e.target.priority.value,
+              dueDate: e.target.dueDate.value,
+              category: e.target.category.value
+            };
+            handleQuickAddSubmit(formData);
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter task title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  name="description"
+                  rows="3"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter description"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Farm</label>
+                <select
+                  name="farmId"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="">Select a farm</option>
+                  {farms.map(farm => (
+                    <option key={farm.Id} value={farm.Id}>{farm.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Crop (Optional)</label>
+                <select
+                  name="cropId"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="">Select a crop</option>
+                  {crops.map(crop => (
+                    <option key={crop.Id} value={crop.Id}>{crop.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select
+                  name="priority"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                <input
+                  type="date"
+                  name="dueDate"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  name="category"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="planting">Planting</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="harvesting">Harvesting</option>
+                  <option value="irrigation">Irrigation</option>
+                  <option value="pest-control">Pest Control</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowQuickAddModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={quickAddLoading}>
+                {quickAddLoading ? "Creating..." : "Create Task"}
+              </Button>
+            </div>
+          </form>
+        );
+      
+      case "transaction":
+        return (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = {
+              type: e.target.type.value,
+              amount: parseFloat(e.target.amount.value),
+              description: e.target.description.value,
+              farmId: parseInt(e.target.farmId.value),
+              cropId: e.target.cropId.value ? parseInt(e.target.cropId.value) : null,
+              date: e.target.date.value,
+              category: e.target.category.value
+            };
+            handleQuickAddSubmit(formData);
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <select
+                  name="type"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                <input
+                  type="number"
+                  name="amount"
+                  required
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter amount"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <input
+                  type="text"
+                  name="description"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  placeholder="Enter description"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Farm</label>
+                <select
+                  name="farmId"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="">Select a farm</option>
+                  {farms.map(farm => (
+                    <option key={farm.Id} value={farm.Id}>{farm.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Crop (Optional)</label>
+                <select
+                  name="cropId"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="">Select a crop</option>
+                  {crops.map(crop => (
+                    <option key={crop.Id} value={crop.Id}>{crop.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  name="category"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-forest-500"
+                >
+                  <option value="seeds">Seeds</option>
+                  <option value="fertilizer">Fertilizer</option>
+                  <option value="equipment">Equipment</option>
+                  <option value="labor">Labor</option>
+                  <option value="fuel">Fuel</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="sales">Sales</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowQuickAddModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={quickAddLoading}>
+                {quickAddLoading ? "Creating..." : "Create Transaction"}
+              </Button>
+            </div>
+          </form>
+        );
+      
+      default:
+        return null;
+    }
+  };
   if (loading) {
     return (
       <div className="space-y-6">
@@ -111,7 +579,7 @@ const Dashboard = () => {
             <ApperIcon name="Download" className="h-4 w-4 mr-2" />
             Export Report
           </Button>
-          <Button size="sm">
+<Button size="sm" onClick={handleQuickAdd}>
             <ApperIcon name="Plus" className="h-4 w-4 mr-2" />
             Quick Add
           </Button>
@@ -299,8 +767,78 @@ const Dashboard = () => {
               ))}
             </div>
           </Card>
-        </div>
+</div>
       </div>
+      
+      {/* Quick Add Modal */}
+      {showQuickAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Quick Add</h2>
+                <button
+                  onClick={() => setShowQuickAddModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <ApperIcon name="X" className="h-6 w-6" />
+                </button>
+              </div>
+              
+              {/* Tab Navigation */}
+              <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setQuickAddType("farm")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+                    quickAddType === "farm"
+                      ? "bg-white text-forest-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <ApperIcon name="MapPin" className="h-4 w-4 mr-1 inline" />
+                  Farm
+                </button>
+                <button
+                  onClick={() => setQuickAddType("crop")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+                    quickAddType === "crop"
+                      ? "bg-white text-forest-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <ApperIcon name="Sprout" className="h-4 w-4 mr-1 inline" />
+                  Crop
+                </button>
+                <button
+                  onClick={() => setQuickAddType("task")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+                    quickAddType === "task"
+                      ? "bg-white text-forest-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <ApperIcon name="CheckSquare" className="h-4 w-4 mr-1 inline" />
+                  Task
+                </button>
+                <button
+                  onClick={() => setQuickAddType("transaction")}
+                  className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${
+                    quickAddType === "transaction"
+                      ? "bg-white text-forest-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  <ApperIcon name="DollarSign" className="h-4 w-4 mr-1 inline" />
+                  Money
+                </button>
+              </div>
+              
+              {/* Form Content */}
+              {renderQuickAddForm()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
