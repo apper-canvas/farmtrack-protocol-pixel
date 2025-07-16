@@ -38,13 +38,13 @@ const TransactionCard = ({ transaction, farm, crop, onEdit, onDelete }) => {
     return icons[category] || "Package";
   };
   
-  return (
+return (
     <Card hover className="relative">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 z-20">
         <ActionDropdown actions={actions} buttonIcon="MoreHorizontal" />
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-4 pr-16">
         <div className="flex items-start space-x-3">
           <div className={cn(
             "p-2 rounded-lg",

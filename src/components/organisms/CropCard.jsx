@@ -45,13 +45,13 @@ const CropCard = ({ crop, farm, onEdit, onDelete, onHarvest }) => {
     }
   };
   
-  return (
+return (
     <Card hover className="relative">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 z-20">
         <ActionDropdown actions={actions} buttonIcon="MoreHorizontal" />
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-4 pr-16">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
             <div className="p-2 bg-forest-50 rounded-lg">

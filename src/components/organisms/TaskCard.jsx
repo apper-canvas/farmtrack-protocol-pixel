@@ -49,12 +49,12 @@ const TaskCard = ({ task, farm, crop, onEdit, onDelete, onComplete }) => {
         task.completed && "opacity-75",
         isOverdue && !task.completed && "border-red-200 bg-red-50"
       )}
-    >
-      <div className="absolute top-4 right-4">
+>
+      <div className="absolute top-4 right-4 z-20">
         <ActionDropdown actions={actions} buttonIcon="MoreHorizontal" />
       </div>
       
-      <div className="space-y-4">
+      <div className="space-y-4 pr-16">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0 mt-1">
             <button
