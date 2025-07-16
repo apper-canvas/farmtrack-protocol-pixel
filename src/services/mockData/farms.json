@@ -1,0 +1,47 @@
+[
+  {
+    "Id": 1,
+    "name": "Green Valley Farm",
+    "location": "Riverside County, CA",
+    "size": 150,
+    "sizeUnit": "acres",
+    "createdAt": "2023-01-15T08:00:00Z",
+    "activeCrops": 5
+  },
+  {
+    "Id": 2,
+    "name": "Sunrise Acres",
+    "location": "San Joaquin Valley, CA",
+    "size": 85,
+    "sizeUnit": "acres",
+    "createdAt": "2023-03-22T09:30:00Z",
+    "activeCrops": 3
+  },
+  {
+    "Id": 3,
+    "name": "Oak Ridge Farm",
+    "location": "Napa Valley, CA",
+    "size": 200,
+    "sizeUnit": "acres",
+    "createdAt": "2023-02-10T10:15:00Z",
+    "activeCrops": 4
+  },
+  {
+    "Id": 4,
+    "name": "Meadowbrook Ranch",
+    "location": "Central Valley, CA",
+    "size": 320,
+    "sizeUnit": "acres",
+    "createdAt": "2023-01-08T07:45:00Z",
+    "activeCrops": 8
+  },
+  {
+    "Id": 5,
+    "name": "Hillside Organic",
+    "location": "Sonoma County, CA",
+    "size": 75,
+    "sizeUnit": "acres",
+    "createdAt": "2023-04-05T11:20:00Z",
+    "activeCrops": 2
+  }
+]
